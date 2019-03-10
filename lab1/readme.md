@@ -8,6 +8,18 @@ pipenv run python text_recognizer/datasets/emnist_dataset.py
 cd ..
 ```
 
+If you are getting the error:
+
+```
+ModuleNotFoundError: No module named 'text_recognizer'
+```
+
+then, you can replace the *pipenv run* command with:
+
+```{sh}
+pipenv run python -m text_recognizer.datasets.emnist_dataset
+```
+
 ## Goal of the lab
 
 Familiarize you with the high-level organizational design of the codebase
