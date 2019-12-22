@@ -21,11 +21,14 @@ class FsdlHandwritingDataset(Dataset):
         self.metadata = toml.load(METADATA_FILENAME)
         with open(RAW_DATA_DIRNAME / self.metadata['filename']) as f:
             page_data = [json.loads(line) for line in f.readlines()]
+        # NOTE: pylint bug https://github.com/PyCQA/pylint/issues/3164
+        # pylint: disable=unnecessary-comprehension
         self.data_by_page_id = {
             id_: data
             for id_, data
             in (_extract_id_and_data(page_datum) for page_datum in page_data)
         }
+        # pylint: enable=unnecessary-comprehension
 
     def load_or_generate_data(self):
         if len(self.page_filenames) < len(self.data_by_page_id):
@@ -83,17 +86,20 @@ def _extract_id_and_data(page_datum):
     id_ = url.split('/')[-1]
     regions = []
     strings = []
-    for annotation in page_datum['annotation']:
-        points = np.array(annotation['points'])
-        x1, y1 = points.min(0)
-        x2, y2 = points.max(0)
-        regions.append({
-            'x1': int(x1 * annotation['imageWidth']),
-            'y1': int(y1 * annotation['imageHeight']),
-            'x2': int(x2 * annotation['imageWidth']),
-            'y2': int(y2 * annotation['imageHeight'])
-        })
-        strings.append(annotation['notes'])
+    try:
+        for annotation in page_datum['annotation']:
+            points = np.array(annotation['points'])
+            x1, y1 = points.min(0)
+            x2, y2 = points.max(0)
+            regions.append({
+                'x1': int(x1 * annotation['imageWidth']),
+                'y1': int(y1 * annotation['imageHeight']),
+                'x2': int(x2 * annotation['imageWidth']),
+                'y2': int(y2 * annotation['imageHeight'])
+            })
+            strings.append(annotation['notes'])
+    except Exception:
+        pass
     return id_, {'url': url, 'regions': regions, 'strings': strings}
 
 
